@@ -1,8 +1,21 @@
 services:
+  model-downloader:
+    image: alpine
+    container_name: llama-cpp-downloader
+    volumes:
+      - ./models:/models
+      - ./download_model.sh:/download_model.sh
+    env_file: .env
+    command: sh /download_model.sh
+
   llama-cpp:
     image: ghcr.io/ggml-org/llama.cpp:server-cuda
     container_name: llama-cpp-qwen
     restart: unless-stopped
+
+    depends_on:
+      model-downloader:
+        condition: service_completed_successfully
 
     ports:
       - "${LLAMA_PORT}:8080"
@@ -24,7 +37,7 @@ services:
 
     command:
       [
-        "-m", "${MODEL_PATH}",
+        "-m", "/models/${MODEL_DIR}/${MODEL_FILENAME}",
 
         "--host", "0.0.0.0",
         "--port", "8080",

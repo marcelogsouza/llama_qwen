@@ -2,48 +2,62 @@
 
 Local inference server running [llama.cpp](https://github.com/ggml-org/llama.cpp) with Qwen models via Docker, with NVIDIA GPU support.
 
+On `docker compose up`, the model is downloaded automatically from HuggingFace if not already present locally.
+
 ## Requirements
 
 - Docker + Docker Compose
 - NVIDIA GPU with driver installed
 - [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html)
 
-## Supported models
+## Quickstart
 
-| Folder                       | Model                           |
-|------------------------------|---------------------------------|
-| `models/qwen3.6-27b/`        | Qwen3.6-27B-UD-IQ2_M.gguf      |
-| `models/qwen3.6-35b-a3b/`    | Qwen3.6-35B-A3B-UD-IQ2_M.gguf  |
+```bash
+# Clone and start — model downloads automatically on first run
+docker compose up -d
+```
 
-See [`models/README.md`](models/README.md) for download instructions.
+The server will be available at `http://localhost:8080` (Web UI + OpenAI-compatible API).
+
+## Using a different model
+
+Edit the following variables in `.env`:
+
+```env
+HF_REPO=unsloth/Qwen3-30B-A3B-GGUF
+MODEL_DIR=qwen3.6-35b-a3b
+MODEL_FILENAME=Qwen3.6-35B-A3B-UD-IQ2_M.gguf
+```
+
+- `HF_REPO`: the HuggingFace repository path (found in the URL of the model page)
+- `MODEL_FILENAME`: the exact `.gguf` filename listed on the repo's Files tab
+- `MODEL_DIR`: local folder name where the file will be stored under `models/`
+
+See [`models/README.md`](models/README.md) for tested models.
 
 ## Configuration
 
-Copy `.env.example` (or edit `.env` directly) and adjust the variables for your GPU and desired model:
+Key variables in `.env`:
 
-```bash
-cp .env.example .env
-```
-
-Key variables:
-
-| Variable         | Description                                                  |
-|------------------|--------------------------------------------------------------|
-| `LLAMA_PORT`     | Port exposed by the server (default: `8080`)                 |
-| `MODEL_PATH`     | Model path inside the container (e.g. `/models/qwen3.6-35b-a3b/Qwen3.6-35B-A3B-UD-IQ2_M.gguf`) |
-| `N_GPU_LAYERS`   | Layers offloaded to GPU (`-1` = all)                         |
-| `CTX_SIZE`       | Context size in tokens                                       |
-| `REASONING`      | Enables chain-of-thought (`on` / `off`)                      |
-| `CACHE_TYPE_K/V` | KV-cache quantization (`q8_0`, `f16`, etc.)                  |
-| `TEMPERATURE`    | Sampling temperature                                         |
-| `MAX_TOKENS`     | Maximum tokens generated per response                        |
+| Variable           | Description                                              |
+|--------------------|----------------------------------------------------------|
+| `LLAMA_PORT`       | Port exposed by the server (default: `8080`)             |
+| `HF_REPO`          | HuggingFace repository to download the model from        |
+| `MODEL_DIR`        | Local subfolder under `models/`                          |
+| `MODEL_FILENAME`   | Exact `.gguf` filename                                   |
+| `N_GPU_LAYERS`     | Layers offloaded to GPU (`-1` = all)                     |
+| `CTX_SIZE`         | Context size in tokens                                   |
+| `REASONING`        | Enables chain-of-thought (`on` / `off`)                  |
+| `CACHE_TYPE_K/V`   | KV-cache quantization (`q8_0`, `f16`, etc.)              |
+| `TEMPERATURE`      | Sampling temperature                                     |
+| `MAX_TOKENS`       | Maximum tokens generated per response                    |
 
 The `.env` file includes commented presets for different use cases (thinking, coding, general chat).
 
 ## Usage
 
 ```bash
-# Start the server
+# Start (downloads model automatically on first run)
 docker compose up -d
 
 # View logs
@@ -53,13 +67,12 @@ docker compose logs -f
 docker compose down
 ```
 
-The server exposes an OpenAI-compatible API at `http://localhost:8080` and a Web UI at `http://localhost:8080`.
-
 ## Structure
 
 ```
 .
 ├── docker-compose.yml
+├── download_model.sh
 ├── .env
 └── models/
     ├── README.md
