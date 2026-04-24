@@ -11,7 +11,7 @@ To download manually or use a different model, follow the instructions below.
 Edit `.env`:
 
 ```env
-HF_REPO=unsloth/Qwen3-30B-A3B-GGUF
+HF_REPO=unsloth/Qwen3.6-35B-A3B-GGUF
 MODEL_DIR=qwen3.6-35b-a3b
 MODEL_FILENAME=Qwen3.6-35B-A3B-UD-IQ2_M.gguf
 ```
@@ -25,7 +25,7 @@ You can use any public GGUF model on HuggingFace — just copy the repository pa
 Mixture-of-Experts with 35B total / 3B active parameters. Best performance-to-resource ratio.
 
 ```env
-HF_REPO=unsloth/Qwen3-30B-A3B-GGUF
+HF_REPO=unsloth/Qwen3.6-35B-A3B-GGUF
 MODEL_DIR=qwen3.6-35b-a3b
 MODEL_FILENAME=Qwen3.6-35B-A3B-UD-IQ2_M.gguf
 ```
@@ -47,7 +47,7 @@ If you prefer to download manually using `huggingface-cli`:
 ```bash
 pip install huggingface_hub
 
-huggingface-cli download unsloth/Qwen3-30B-A3B-GGUF \
+huggingface-cli download unsloth/Qwen3.6-35B-A3B-GGUF \
   Qwen3.6-35B-A3B-UD-IQ2_M.gguf \
   --local-dir models/qwen3.6-35b-a3b
 ```
