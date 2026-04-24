@@ -1,0 +1,2 @@
+# Ignore all model subfolders and their contents (e.g. .gguf files, cache)
+*/
