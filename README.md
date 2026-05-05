@@ -35,22 +35,39 @@ MODEL_FILENAME=Qwen3.6-35B-A3B-UD-IQ2_M.gguf
 
 See [`models/README.md`](models/README.md) for tested models.
 
+## Quantization comparison
+
+Perplexity measured on WikiText-2 test set (50 chunks, ctx=512) — model: Qwen3.6-35B-A3B, RTX 4070 (12 GB VRAM).
+
+> This branch uses a custom llama.cpp fork ([TheTom/llama-cpp-turboquant](https://github.com/TheTom/llama-cpp-turboquant)) for TurboQuant KV cache support (`turbo4`/`turbo3`).
+
+| Quantization | PPL (↓ better) | Δ vs Q8_0 | Speed (s/pass) | Size   | CPU RAM (experts) | N_CPU_MOE |
+|--------------|----------------|-----------|----------------|--------|-------------------|-----------|
+| IQ2_M        | 6.6773 ± 0.147 | +7.4%     | 2.14s          | 11.5 GB | ~5 GB            | 35        |
+| **Q4_K_M**   | **6.2402 ± 0.136** | **+0.4%** | **2.91s**  | 22.1 GB | 12.1 GB          | **28**    |
+| Q8_0         | 6.2181 ± 0.135 | baseline  | 4.63s          | 36.9 GB | 27.4 GB          | 33        |
+
+**Q4_K_M is the recommended configuration**: virtually identical quality to Q8_0 (+0.4% perplexity), 37% faster, uses 15 GB less RAM and fits 5 more expert layers on GPU.
+
 ## Configuration
 
 Key variables in `.env`:
 
-| Variable           | Description                                              |
-|--------------------|----------------------------------------------------------|
-| `LLAMA_PORT`       | Port exposed by the server (default: `8080`)             |
-| `HF_REPO`          | HuggingFace repository to download the model from        |
-| `MODEL_DIR`        | Local subfolder under `models/`                          |
-| `MODEL_FILENAME`   | Exact `.gguf` filename                                   |
-| `N_GPU_LAYERS`     | Layers offloaded to GPU (`-1` = all)                     |
-| `CTX_SIZE`         | Context size in tokens                                   |
-| `REASONING`        | Enables chain-of-thought (`on` / `off`)                  |
-| `CACHE_TYPE_K/V`   | KV-cache quantization (`q8_0`, `f16`, etc.)              |
-| `TEMPERATURE`      | Sampling temperature                                     |
-| `MAX_TOKENS`       | Maximum tokens generated per response                    |
+| Variable         | Description                                                       |
+|------------------|-------------------------------------------------------------------|
+| `LLAMA_PORT`     | Port exposed by the server (default: `8080`)                      |
+| `HF_REPO`        | HuggingFace repository to download the model from                 |
+| `MODEL_DIR`      | Local subfolder under `models/`                                   |
+| `MODEL_FILENAME` | Exact `.gguf` filename                                            |
+| `N_GPU_LAYERS`   | Layers offloaded to GPU (`-1` = all)                              |
+| `N_CPU_MOE`      | MoE expert layers kept on CPU (tune to fit VRAM; see table above) |
+| `CTX_SIZE`       | Context size in tokens (max 262144 for this model)                |
+| `KV_OFFLOAD`     | KV cache on GPU (`true`) or RAM (`false`)                         |
+| `NO_MMAP`        | Load model fully into RAM (`true` = faster, needs more RAM)       |
+| `MLOCK`          | Pin model in RAM to prevent OS swap                               |
+| `CACHE_TYPE_K/V` | KV-cache quantization (`turbo4`/`turbo3` with this fork)          |
+| `TEMPERATURE`    | Sampling temperature                                              |
+| `MAX_TOKENS`     | Maximum tokens generated per response                             |
 
 The `.env` file includes commented presets for different use cases (thinking, coding, general chat).
 
