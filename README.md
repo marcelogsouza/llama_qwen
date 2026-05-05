@@ -67,6 +67,24 @@ docker compose logs -f
 docker compose down
 ```
 
+## Troubleshooting
+
+### Cannot access from another machine on the network
+
+The server is accessible at `http://<host-ip>:8080` from any machine on the same network. If it isn't responding, the container is likely not running:
+
+```bash
+docker ps --filter name=llama-cpp-qwen
+```
+
+If it shows `Exited` or nothing, start it:
+
+```bash
+docker compose up -d
+```
+
+> **Note:** `docker compose down` disables the automatic restart policy. If you only want to pause the server (keeping auto-restart on reboot), use `docker stop llama-cpp-qwen` instead.
+
 ## Structure
 
 ```
