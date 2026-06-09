@@ -9,8 +9,8 @@ services:
     command: sh /download_model.sh
 
   llama-cpp:
-    image: llama-cpp-turboquant:server-cuda
-    container_name: llama-cpp-qwen
+    image: ghcr.io/ggml-org/llama.cpp:server-cuda
+    container_name: llama-cpp
     restart: unless-stopped
 
     depends_on:

@@ -24,9 +24,10 @@ The server will be available at `http://localhost:8080` (Web UI + OpenAI-compati
 Edit the following variables in `.env`:
 
 ```env
-HF_REPO=unsloth/gemma-4-26B-A4B-it-GGUF
-MODEL_DIR=gemma-4-26b-a4b-it-q4km
-MODEL_FILENAME=gemma-4-26B-A4B-it-UD-Q4_K_M.gguf
+HF_REPO=unsloth/gemma-4-12b-it-GGUF
+MODEL_DIR=gemma-4-12b-it-q4km
+MODEL_FILENAME=gemma-4-12b-it-Q4_K_M.gguf
+MTP_FILENAME=MTP/gemma-4-12B-it-MTP-Q8_0.gguf
 ```
 
 - `HF_REPO`: the HuggingFace repository path (found in the URL of the model page)
@@ -35,25 +36,11 @@ MODEL_FILENAME=gemma-4-26B-A4B-it-UD-Q4_K_M.gguf
 
 See [`models/README.md`](models/README.md) for tested models.
 
-## Quantization comparison
+## MTP (Multi-Token Prediction)
 
-> This branch uses a custom llama.cpp fork ([TheTom/llama-cpp-turboquant](https://github.com/TheTom/llama-cpp-turboquant)) for TurboQuant KV cache support (`turbo4`/`turbo3`).
+This branch uses the official [llama.cpp](https://github.com/ggml-org/llama.cpp) with native MTP support (PR #23398, merged). MTP uses a small draft model that shares the target's KV cache to speculatively predict multiple tokens per step, delivering **2–3× speedup** on Gemma 4 12B dense models.
 
-### Gemma 4 26B-A4B — RTX 4070 (12 GB VRAM) — TBD
-
-N_CPU_MOE tuning in progress. Update this table after benchmarking with the WikiText-2 script.
-
-### Qwen3.6-35B-A3B — RTX 4070 (12 GB VRAM) — reference
-
-Perplexity measured on WikiText-2 test set (50 chunks, ctx=512).
-
-| Quantization | PPL (↓ better) | Δ vs Q8_0 | Speed (s/pass) | Size   | CPU RAM (experts) | N_CPU_MOE |
-|--------------|----------------|-----------|----------------|--------|-------------------|-----------|
-| IQ2_M        | 6.6773 ± 0.147 | +7.4%     | 2.14s          | 11.5 GB | ~5 GB            | 35        |
-| **Q4_K_M**   | **6.2402 ± 0.136** | **+0.4%** | **2.91s**  | 22.1 GB | 12.1 GB          | **28**    |
-| Q8_0         | 6.2181 ± 0.135 | baseline  | 4.63s          | 36.9 GB | 27.4 GB          | 33        |
-
-Q4_K_M (Qwen): virtually identical quality to Q8_0 (+0.4% perplexity), 37% faster, uses 15 GB less RAM.
+The MTP draft model (`MTP/gemma-4-12B-it-MTP-Q8_0.gguf`) is downloaded automatically alongside the main model.
 
 ## Configuration
 
@@ -66,12 +53,13 @@ Key variables in `.env`:
 | `MODEL_DIR`      | Local subfolder under `models/`                                   |
 | `MODEL_FILENAME` | Exact `.gguf` filename                                            |
 | `N_GPU_LAYERS`   | Layers offloaded to GPU (`-1` = all)                              |
-| `N_CPU_MOE`      | MoE expert layers kept on CPU (tune to fit VRAM; see table above) |
-| `CTX_SIZE`       | Context size in tokens (max 131072 for Gemma 4; 262144 for Qwen)  |
+| `CTX_SIZE`       | Context size in tokens                                            |
 | `KV_OFFLOAD`     | KV cache on GPU (`true`) or RAM (`false`)                         |
+| `CACHE_TYPE_K/V` | KV-cache quantization (`q8_0` = 8-bit, `q4_0` = 4-bit)           |
+| `MTP_FILENAME`   | Path to MTP draft model within the HF repo (empty = disable MTP) |
+| `MTP_DRAFT_N`    | Max draft tokens per MTP step (default: `4`)                      |
 | `NO_MMAP`        | Load model fully into RAM (`true` = faster, needs more RAM)       |
 | `MLOCK`          | Pin model in RAM to prevent OS swap                               |
-| `CACHE_TYPE_K/V` | KV-cache quantization (`turbo4`/`turbo3` with this fork)          |
 | `TEMPERATURE`    | Sampling temperature                                              |
 | `MAX_TOKENS`     | Maximum tokens generated per response                             |
 
@@ -106,7 +94,7 @@ If it shows `Exited` or nothing, start it:
 docker compose up -d
 ```
 
-> **Note:** `docker compose down` disables the automatic restart policy. If you only want to pause the server (keeping auto-restart on reboot), use `docker stop llama-cpp-qwen` instead.
+> **Note:** `docker compose down` disables the automatic restart policy. If you only want to pause the server (keeping auto-restart on reboot), use `docker stop llama-cpp` instead.
 
 ## Structure
 

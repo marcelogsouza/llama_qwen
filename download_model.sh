@@ -1,22 +1,30 @@
 #!/bin/sh
 set -e
 
-MODEL_FILE="/models/${MODEL_DIR}/${MODEL_FILENAME}"
-MODEL_URL="https://huggingface.co/${HF_REPO}/resolve/main/${MODEL_FILENAME}"
+download_file() {
+    local hf_repo="$1"
+    local filename="$2"
+    local dest="$3"
 
-mkdir -p "/models/${MODEL_DIR}"
+    local url="https://huggingface.co/${hf_repo}/resolve/main/${filename}"
+    mkdir -p "$(dirname "$dest")"
+    echo "Downloading ${filename} from ${hf_repo} (resumes if partial)..."
 
-echo "Downloading ${MODEL_FILENAME} from ${HF_REPO} (resumes if partial)..."
+    WGET_OUTPUT=$(wget -c "$url" -O "$dest" 2>&1) && WGET_EXIT=0 || WGET_EXIT=$?
 
-WGET_OUTPUT=$(wget -c "$MODEL_URL" -O "$MODEL_FILE" 2>&1) && WGET_EXIT=0 || WGET_EXIT=$?
+    if [ $WGET_EXIT -eq 0 ]; then
+        echo "Download complete: ${dest}"
+    elif echo "$WGET_OUTPUT" | grep -q "416" && [ -s "${dest}" ]; then
+        echo "Already fully downloaded: ${dest}"
+    else
+        echo "Download failed:"
+        echo "$WGET_OUTPUT"
+        exit 1
+    fi
+}
 
-if [ $WGET_EXIT -eq 0 ]; then
-    echo "Download complete: ${MODEL_FILE}"
-elif echo "$WGET_OUTPUT" | grep -q "416" && [ -s "${MODEL_FILE}" ]; then
-    # HTTP 416 = Range Not Satisfiable = file already fully downloaded
-    echo "Model already fully downloaded: ${MODEL_FILE}"
-else
-    echo "Download failed:"
-    echo "$WGET_OUTPUT"
-    exit 1
+download_file "${HF_REPO}" "${MODEL_FILENAME}" "/models/${MODEL_DIR}/${MODEL_FILENAME}"
+
+if [ -n "${MTP_FILENAME}" ]; then
+    download_file "${HF_REPO}" "${MTP_FILENAME}" "/models/${MODEL_DIR}/${MTP_FILENAME}"
 fi

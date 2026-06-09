@@ -6,11 +6,6 @@ if [ "${KV_OFFLOAD}" = "false" ]; then
     KV_FLAG="--no-kv-offload"
 fi
 
-MOE_FLAG=""
-if [ -n "${N_CPU_MOE}" ] && [ "${N_CPU_MOE}" -gt 0 ]; then
-    MOE_FLAG="--n-cpu-moe ${N_CPU_MOE}"
-fi
-
 MMAP_FLAG=""
 if [ "${NO_MMAP}" = "true" ]; then
     MMAP_FLAG="--no-mmap"
@@ -19,6 +14,11 @@ fi
 MLOCK_FLAG=""
 if [ "${MLOCK}" = "true" ]; then
     MLOCK_FLAG="--mlock"
+fi
+
+MTP_FLAGS=""
+if [ -n "${MTP_FILENAME}" ]; then
+    MTP_FLAGS="--model-draft /models/${MODEL_DIR}/${MTP_FILENAME} --spec-type draft-mtp --spec-draft-n-max ${MTP_DRAFT_N:-4}"
 fi
 
 exec /app/llama-server \
@@ -40,6 +40,6 @@ exec /app/llama-server \
     --repeat-penalty "${REPEAT_PENALTY}" \
     -n "${MAX_TOKENS}" \
     $KV_FLAG \
-    $MOE_FLAG \
     $MMAP_FLAG \
-    $MLOCK_FLAG
+    $MLOCK_FLAG \
+    $MTP_FLAGS
