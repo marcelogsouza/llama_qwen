@@ -23,6 +23,7 @@ fi
 
 exec /app/llama-server \
     -m "/models/${MODEL_DIR}/${MODEL_FILENAME}" \
+    --flash-attn on \
     --host 0.0.0.0 \
     --port 8080 \
     --webui \
