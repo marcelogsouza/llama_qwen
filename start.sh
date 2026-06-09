@@ -18,7 +18,7 @@ fi
 
 MTP_FLAGS=""
 if [ -n "${MTP_FILENAME}" ]; then
-    MTP_FLAGS="--model-draft /models/${MODEL_DIR}/${MTP_FILENAME} --spec-type draft-mtp --spec-draft-n-max ${MTP_DRAFT_N:-4}"
+    MTP_FLAGS="--model-draft /models/${MODEL_DIR}/mtp/${MTP_FILENAME} --spec-type draft-mtp --spec-draft-n-max ${MTP_DRAFT_N:-4}"
 fi
 
 exec /app/llama-server \

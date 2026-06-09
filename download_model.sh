@@ -26,5 +26,6 @@ download_file() {
 download_file "${HF_REPO}" "${MODEL_FILENAME}" "/models/${MODEL_DIR}/${MODEL_FILENAME}"
 
 if [ -n "${MTP_FILENAME}" ]; then
-    download_file "${HF_REPO}" "${MTP_FILENAME}" "/models/${MODEL_DIR}/${MTP_FILENAME}"
+    MTP_REPO="${MTP_HF_REPO:-${HF_REPO}}"
+    download_file "${MTP_REPO}" "${MTP_FILENAME}" "/models/${MODEL_DIR}/mtp/${MTP_FILENAME}"
 fi
